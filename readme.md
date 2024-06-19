@@ -1,0 +1,1 @@
+## WikiScore extension for Chrome
