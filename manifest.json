@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "WikiScoreEX",
+  "description": "WikiScore extension for Chrome",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": ["*://en.wikipedia.org/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "wikiscore.png"
+  }
+}
