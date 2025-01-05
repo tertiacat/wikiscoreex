@@ -1,7 +1,7 @@
 const excludeNodes = ['SUP', 'TABLE'];
 const includeParents = ['P', 'LI', 'I'];
 const includeNodes = ['#text', 'A', 'B', 'H2', 'H3','H4','H5'];
-const excludeTexts = ['.', ',', "'", '?', '!', '.\n'];
+const excludeTexts = ['.', ',', "'", '?', '!', '.\n', '\n'];
 let n = 0;
 
 (async (): Promise<number[]> => {
@@ -26,7 +26,7 @@ let n = 0;
   //highlight background
   for (let i = 0; i < n; i++) {
     const elm = document.getElementById(`ws${i}`);
-    if (elm) elm.style.backgroundColor = `rgb(255,${age[i]},${age[i]})`;
+    if (elm) elm.style.backgroundColor = `rgb(255,${160+age[i]*96/256},${age[i]})`;
   }
 });
 
