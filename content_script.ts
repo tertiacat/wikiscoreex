@@ -1,18 +1,13 @@
 const excludeNodes = ['SUP', 'TABLE'];
 const includeParents = ['P', 'LI', 'I'];
-const includeNodes = ['#text', 'A', 'B', 'H2', 'H3','H4','H5'];
+const includeNodes = ['#text', 'A', 'B', 'H2', 'H3', 'H4', 'H5'];
 const excludeTexts = ['.', ',', "'", '?', '!', '.\n', '\n'];
 let n = 0;
 
 (async (): Promise<number[]> => {
   const title = location.pathname.replace(/\/+$/, "").split('/').pop();
-  let age = await computeAgeOnline(title);
-  const prob = 0.99;
-  for (let i = 0; i < age.length; i++)
-    age[i] = (1 - Math.pow(prob, age[i]));
-  let mx = -1;
-  for (let i = 0; i < age.length; i++) mx = Math.max(mx, age[i]);
-  for (let i = 0; i < age.length; i++) age[i] = Math.floor(age[i] / mx * 256);
+  let age = ageToProb(await computeAgeOnline(title));
+  for (let i = 0; i < age.length; i++) age[i] = Math.floor(age[i] * 256);
   console.log(JSON.stringify(age));
   console.log(age.length);
   return age;
@@ -26,7 +21,7 @@ let n = 0;
   //highlight background
   for (let i = 0; i < n; i++) {
     const elm = document.getElementById(`ws${i}`);
-    if (elm) elm.style.backgroundColor = `rgb(255,${160+age[i]*96/256},${age[i]})`;
+    if (elm) elm.style.backgroundColor = `rgb(255,${160 + age[i] * 96 / 256},${age[i]})`;
   }
 });
 
@@ -165,6 +160,18 @@ function movesQuadratic(start: string[], target: string[]) {
     if (inv[i] != -1) redir[inv[i]] = i;
 
   return redir;
+}
+
+function ageToProb(age: number[]): number[] {
+  const r = 0.95;
+  const c = 0.3;
+
+  let prob = []
+
+  for (let i = 0; i < age.length; i++)
+    prob[i] = c / ((1 - c) * Math.pow(r, age[i]) + c);
+
+  return prob;
 }
 
 interface stringIndex {
