@@ -6,6 +6,8 @@ const excludeTexts = ['.', ',', "'", '?', '!', '.\n', '\n'];
 let n = 0;
 (async () => {
     const title = location.pathname.replace(/\/+$/, "").split('/').pop();
+    if (title == 'index.php')
+        throw new Error('WikiScore cannot be applied to old revisions of the article.');
     let age = ageToProb(await computeAgeOnline(title));
     for (let i = 0; i < age.length; i++)
         age[i] = Math.floor(age[i] * 256);
@@ -24,6 +26,8 @@ let n = 0;
         if (elm)
             elm.style.backgroundColor = `rgb(255,${160 + age[i] * 96 / 256},${age[i]})`;
     }
+}).catch((error) => {
+    console.error(error);
 });
 function query(params) {
     var url = "https://en.wikipedia.org/w/api.php";

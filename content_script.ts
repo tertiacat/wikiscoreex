@@ -6,6 +6,7 @@ let n = 0;
 
 (async (): Promise<number[]> => {
   const title = location.pathname.replace(/\/+$/, "").split('/').pop();
+  if (title == 'index.php') throw new Error('WikiScore cannot be applied to old revisions of the article.')
   let age = ageToProb(await computeAgeOnline(title));
   for (let i = 0; i < age.length; i++) age[i] = Math.floor(age[i] * 256);
   console.log(JSON.stringify(age));
@@ -23,6 +24,8 @@ let n = 0;
     const elm = document.getElementById(`ws${i}`);
     if (elm) elm.style.backgroundColor = `rgb(255,${160 + age[i] * 96 / 256},${age[i]})`;
   }
+}).catch((error) => {
+  console.error(error);
 });
 
 function query(params: params) {
