@@ -2,30 +2,21 @@
 const excludeNodes = ['SUP', 'TABLE'];
 const includeParents = ['P', 'LI', 'I'];
 const includeNodes = ['#text', 'A', 'B', 'H2', 'H3', 'H4', 'H5'];
-const excludeTexts = ['.', ',', "'", '?', '!', '.\n', '\n'];
+const excludeTexts = ['.', ',', "'", "\"", "\",", '?', '!', '.\n', '\n'];
 let n = 0;
 (async () => {
-    const title = location.pathname.replace(/\/+$/, "").split('/').pop();
-    if (title == 'index.php')
-        throw new Error('WikiScore cannot be applied to old revisions of the article.');
-    let age = ageToProb(await computeAgeOnline(title));
-    for (let i = 0; i < age.length; i++)
-        age[i] = Math.floor(age[i] * 256);
-    console.log(JSON.stringify(age));
-    console.log(age.length);
-    return age;
-})().then(age => {
+    //split into words
     const mainText = document.getElementsByClassName('mw-content-ltr')[0];
     const mainTextArr = mainText.childNodes;
     for (let i = 0; i < mainTextArr.length; i++) {
         numbering(mainTextArr[i]);
     }
-    //highlight background
-    for (let i = 0; i < n; i++) {
-        const elm = document.getElementById(`ws${i}`);
-        if (elm)
-            elm.style.backgroundColor = `rgb(255,${160 + age[i] * 96 / 256},${age[i]})`;
-    }
+})().then(async () => {
+    //calculate prob & highlight
+    const title = location.pathname.replace(/\/+$/, "").split('/').pop();
+    if (title == 'index.php')
+        throw new Error('WikiScore cannot be applied to old revisions of the article.');
+    await computeAgeOnline(title);
 }).catch((error) => {
     console.error(error);
 });
@@ -103,13 +94,13 @@ async function computeAgeOnline(title) {
             }
             for (let j = 0; j < redir.length; j++)
                 age[redir[j]]++;
+            updateHighlight(age);
         }
         let end = new Date();
         console.log(end - start);
         if (data.batchcomplete)
             break;
     }
-    return age;
 }
 function movesQuadratic(start, target) {
     let len = new Array(target.length).fill(0);
@@ -194,4 +185,16 @@ function split(text, tag, href, title) {
         newNodes.appendChild(placeholder);
     }
     return newNodes;
+}
+function updateHighlight(age) {
+    const prob = ageToProb(age);
+    for (let i = 0; i < age.length; i++)
+        prob[i] = Math.floor(prob[i] * 256);
+    console.log(JSON.stringify(prob));
+    //highlight background
+    for (let i = 0; i < n; i++) {
+        const elm = document.getElementById(`ws${i}`);
+        if (elm)
+            elm.style.backgroundColor = `rgb(255,${160 + prob[i] * 96 / 256},${prob[i]})`;
+    }
 }

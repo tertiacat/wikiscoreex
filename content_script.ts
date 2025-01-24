@@ -1,29 +1,21 @@
 const excludeNodes = ['SUP', 'TABLE'];
 const includeParents = ['P', 'LI', 'I'];
 const includeNodes = ['#text', 'A', 'B', 'H2', 'H3', 'H4', 'H5'];
-const excludeTexts = ['.', ',', "'", '?', '!', '.\n', '\n'];
+const excludeTexts = ['.', ',', "'", "\"", "\",", '?', '!', '.\n', '\n'];
 let n = 0;
 
-(async (): Promise<number[]> => {
-  const title = location.pathname.replace(/\/+$/, "").split('/').pop();
-  if (title == 'index.php') throw new Error('WikiScore cannot be applied to old revisions of the article.')
-  let age = ageToProb(await computeAgeOnline(title));
-  for (let i = 0; i < age.length; i++) age[i] = Math.floor(age[i] * 256);
-  console.log(JSON.stringify(age));
-  console.log(age.length);
-  return age;
-})().then(age => {
+(async (): Promise<void> => {
+  //split into words
   const mainText = document.getElementsByClassName('mw-content-ltr')[0];
   const mainTextArr = mainText.childNodes;
   for (let i = 0; i < mainTextArr.length; i++) {
     numbering(mainTextArr[i]);
   }
-
-  //highlight background
-  for (let i = 0; i < n; i++) {
-    const elm = document.getElementById(`ws${i}`);
-    if (elm) elm.style.backgroundColor = `rgb(255,${160 + age[i] * 96 / 256},${age[i]})`;
-  }
+})().then(async () => {
+  //calculate prob & highlight
+  const title = location.pathname.replace(/\/+$/, "").split('/').pop();
+  if (title == 'index.php') throw new Error('WikiScore cannot be applied to old revisions of the article.');
+  await computeAgeOnline(title);
 }).catch((error) => {
   console.error(error);
 });
@@ -62,7 +54,7 @@ function processXML(xml: string) {
   return result;
 }
 
-async function computeAgeOnline(title: string | undefined) {
+async function computeAgeOnline(title: string | undefined): Promise<void> {
   let out = [];
   let id = -1;
 
@@ -78,7 +70,7 @@ async function computeAgeOnline(title: string | undefined) {
   };
 
   let prev: string[] = [];
-  let age = [];
+  let age: number[] = [];
   let redir = [];
 
   let promise = query(params);
@@ -116,6 +108,8 @@ async function computeAgeOnline(title: string | undefined) {
 
       for (let j = 0; j < redir.length; j++)
         age[redir[j]]++;
+
+      updateHighlight(age);
     }
 
     let end: any = new Date();
@@ -124,8 +118,6 @@ async function computeAgeOnline(title: string | undefined) {
 
     if (data.batchcomplete) break;
   }
-
-  return age;
 }
 
 function movesQuadratic(start: string[], target: string[]) {
@@ -231,4 +223,16 @@ function split(text: string, tag: string, href?: string | null, title?: string |
     newNodes.appendChild(placeholder);
   }
   return newNodes;
+}
+
+function updateHighlight(age: number[]) {
+  const prob = ageToProb(age);
+  for (let i = 0; i < age.length; i++) prob[i] = Math.floor(prob[i] * 256);
+  console.log(JSON.stringify(prob));
+
+  //highlight background
+  for (let i = 0; i < n; i++) {
+    const elm = document.getElementById(`ws${i}`);
+    if (elm) elm.style.backgroundColor = `rgb(255,${160 + prob[i] * 96 / 256},${prob[i]})`;
+  }
 }
