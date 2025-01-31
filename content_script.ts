@@ -7,10 +7,7 @@ let n = 0;
 (async (): Promise<void> => {
   //split into words
   const mainText = document.getElementsByClassName('mw-content-ltr')[0];
-  const mainTextArr = mainText.childNodes;
-  for (let i = 0; i < mainTextArr.length; i++) {
-    numbering(mainTextArr[i]);
-  }
+  await split(mainText.childNodes);
 })().then(async () => {
   //calculate prob & highlight
   const title = location.pathname.replace(/\/+$/, "").split('/').pop();
@@ -184,24 +181,24 @@ interface params extends stringIndex {
   rvlimit: number,
 }
 
-function numbering(node: Node): void {
-  if (node.parentNode) {
-    const parentNode = node.parentNode;
-    if (!includeNodes.includes(node.nodeName) && !excludeNodes.includes(node.nodeName)) {
-      for (const childNode of node.childNodes) {
-        numbering(childNode);
-      }
-    } else if (node.textContent) {
-      if (node.nodeName == 'H2' || node.nodeName == 'H3' || node.nodeName == 'H4' || node.nodeName == 'H5' || includeParents.includes(parentNode.nodeName)) {
-        const href = node.nodeName == 'A' ? (node instanceof HTMLElement ? node.getAttribute('href') : null) : null;
-        const title = node.nodeName == 'A' ? (node instanceof HTMLElement ? node.getAttribute('title') : null) : null;
-        if (includeNodes.includes(node.nodeName)) parentNode.replaceChild(split(node.textContent, node.nodeName, href, title), node);
+async function split(mainTextArr: NodeListOf<ChildNode>): Promise<void> {
+  for (let node of mainTextArr) {
+    if (node.parentNode) {
+      const parentNode = node.parentNode;
+      if (!includeNodes.includes(node.nodeName) && !excludeNodes.includes(node.nodeName)) {
+        await split(node.childNodes);
+      } else if (node.textContent) {
+        if (node.nodeName == 'H2' || node.nodeName == 'H3' || node.nodeName == 'H4' || node.nodeName == 'H5' || includeParents.includes(parentNode.nodeName)) {
+          const href = node.nodeName == 'A' ? (node instanceof HTMLElement ? node.getAttribute('href') : null) : null;
+          const title = node.nodeName == 'A' ? (node instanceof HTMLElement ? node.getAttribute('title') : null) : null;
+          if (includeNodes.includes(node.nodeName)) parentNode.replaceChild(numbering(node.textContent, node.nodeName, href, title), node);
+        }
       }
     }
   }
 }
 
-function split(text: string, tag: string, href?: string | null, title?: string | null): HTMLSpanElement {
+function numbering(text: string, tag: string, href?: string | null, title?: string | null): HTMLSpanElement {
   const newNodes: HTMLSpanElement = document.createElement('span');
   let textArr: string[] = text.split(' ');
   textArr = textArr.filter((value) => {
