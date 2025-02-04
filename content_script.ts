@@ -230,6 +230,6 @@ function updateHighlight(age: number[]) {
   //highlight background
   for (let i = 0; i < n; i++) {
     const elm = document.getElementById(`ws${i}`);
-    if (elm) elm.style.backgroundColor = `rgb(255,${160 + prob[i] * 96 / 256},${prob[i]})`;
+    if (elm) elm.style.backgroundColor = `rgb(255,${prob[i]},${prob[i]})`;
   }
 }
